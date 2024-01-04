@@ -28,9 +28,12 @@ export class FolderPage implements OnInit {
     private http: HttpClient,
   ) {}
 
+  private roomName = '';
+  private token = '';
+
   messages: string[] = [];
-  room: Room = new Room();
-  metadata = new BehaviorSubject<RoomMetadata>({ counter: 0 });
+  room!: Room;
+  metadata = new BehaviorSubject<RoomMetadata>({ counter: -1 });
   counter = this.metadata.pipe(map((m) => m.counter));
 
   private logMessage(msg: string) {
@@ -43,15 +46,20 @@ export class FolderPage implements OnInit {
     this.messages.push(`error: ${msg}`);
   }
 
-  ngOnInit() {
-    this.folder = this.activatedRoute.snapshot.paramMap.get('id') as string;
-
+  private initRoom() {
+    this.room = new Room();
     this.room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
       this.logMessage(`RoomEvent.RoomMetadataChanged: ${JSON.stringify(metadata)}`);
       if (metadata) {
         this.metadata.next(JSON.parse(metadata));
       }
     });
+  }
+
+  ngOnInit() {
+    this.folder = this.activatedRoute.snapshot.paramMap.get('id') as string;
+
+    this.initRoom();
 
     this.http.post<CreateRoomResponse>(`${apiUrl}/create-room`, {}).subscribe({
       next: (res) => {
@@ -65,7 +73,10 @@ export class FolderPage implements OnInit {
     });
   }
 
-  private async joinRoom(_: string, token: string) {
+  private async joinRoom(roomName: string, token: string) {
+    this.roomName = roomName;
+    this.token = token;
+
     this.room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
       this.logMessage(`[Type0] RoomEvent.RoomMetadataChanged: ${JSON.stringify(metadata)}`);
       if (metadata) {
@@ -92,6 +103,17 @@ export class FolderPage implements OnInit {
 
     setTimeout(() => {
       this.logMessage(`after increment() 1s, this.room.metadata: ${this.room.metadata}`);
+    }, 1000);
+  }
+
+  public async reconnect() {
+    await this.room.disconnect();
+    this.logMessage(`disconnected from room ${this.room.name}`);
+
+    setTimeout(() => {
+      this.logMessage(`after disconnect() 1s, this.room.metadata: ${this.room.metadata}`);
+      this.initRoom();
+      this.joinRoom(this.roomName, this.token);
     }, 1000);
   }
 }
