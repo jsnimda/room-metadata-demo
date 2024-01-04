@@ -1,0 +1,7 @@
+# Ignore everything
+**
+
+# But include the necessary files
+!go.mod
+!go.sum
+!*.go

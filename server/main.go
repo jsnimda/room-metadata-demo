@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -16,7 +17,7 @@ import (
 	lksdk "github.com/livekit/server-sdk-go"
 )
 
-const (
+var (
 	host      = "http://localhost:7880"
 	apiKey    = "devkey"
 	apiSecret = "secret"
@@ -47,6 +48,12 @@ func createRoomMetadata(counter int) []byte {
 }
 
 func main() {
+	if os.Getenv("LIVEKIT_HOST") != "" {
+		host = os.Getenv("LIVEKIT_HOST")
+	}
+
+	log.Printf("Using host: %s", host)
+
 	roomClient := lksdk.NewRoomServiceClient(host, apiKey, apiSecret)
 
 	globalCounter := 0

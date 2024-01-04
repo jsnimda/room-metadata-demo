@@ -77,21 +77,7 @@ export class FolderPage implements OnInit {
     this.roomName = roomName;
     this.token = token;
 
-    this.room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
-      this.logMessage(`[Type0] RoomEvent.RoomMetadataChanged: ${JSON.stringify(metadata)}`);
-      if (metadata) {
-        this.metadata.next(JSON.parse(metadata));
-      }
-    });
-
     await this.room.connect(livekitUrl, token);
-
-    this.room.on(RoomEvent.RoomMetadataChanged, (metadata) => {
-      this.logMessage(`[Type1] RoomEvent.RoomMetadataChanged: ${JSON.stringify(metadata)}`);
-      if (metadata) {
-        this.metadata.next(JSON.parse(metadata));
-      }
-    });
 
     this.logMessage(`joined room ${this.room.name}, this.room.metadata: ${this.room.metadata}`);
   }
